@@ -3,33 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-
+  
   <script type="module">
     /**
-     * Assignment 6:
-     * Implement a filter that filters articles between 'read', 'unread', and 'all'.
-     *
-     * - Add a filter property to the parent element
-     * - Filter the articles to display based on the current filter
-     *   - Tip: You can filter the articles in the top of you render function,
-     *          before you return the template. This way you 'prepare' all your
-     *          variables before creating your template.
-     * - Add three buttons which each set a different filter
-     *
-     * Check out the README.md for reference documentation
-     *
-     * Copy paste into plnkr: http://plnkr.co/edit/DI9312Rn54NuIH7FRzzD?p=preview
-     */
+    * Assignment 6:
+    * Implement a filter that filters articles between 'read', 'unread', and 'all'.
+    *
+    * - Add a filter property to the parent element
+    * - Filter the articles to display based on the current filter
+    *   - Tip: You can filter the articles in the top of you render function,
+    *          before you return the template. This way you 'prepare' all your
+    *          variables before creating your template.
+    * - Add three buttons which each set a different filter
+    *
+    * Check out the README.md for reference documentation
+    *
+    * Copy paste into plnkr: http://plnkr.co/edit/DI9312Rn54NuIH7FRzzD?p=preview
+    */
     import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.0.1?module';
-
+    
     class MyElement extends LitElement {
+      static get properties(){
+        return {
+          articles: {type: Array},
+          filter: {type: String}
+        }
+      }
+      
+      constructor(){
+        super();
+        this.articles = [];
+      }
+      
+      connectedCallback(){
+        super.connectedCallback();
+        
+        fetch('https://newsapi.org/v2/everything?q=yankees&apiKey=4400ff3e644b4664888a569d8ae7f1e2')
+        .then(response => response.json())
+        .then(response => {
+          this.articles = response.articles.map((article, i) => ({...article, id: i, read: false}));
+        });
+      }
+      
+      readToggleCallback(event){
+        this.articles[event.detail].read = !this.articles[event.detail].read;
+        this.requestUpdate();
+      }
 
+      handleFilter(filterChoice){
+        this.filter = filterChoice;
+        this.requestUpdate();
+      }
+      
+      render(){
+        var articlesToShow = this.articles;
+
+        if(this.filter == "read"){
+          articlesToShow = this.articles.filter(a => a.read);
+        } else if (this.filter == "unread"){
+          articlesToShow = this.articles.filter(a => !a.read);
+        }
+
+
+        return html `
+        <h1>Articles</h1>
+        <p>Filter</p>
+        <button @click=${() => this.handleFilter('read')}>Read</button>
+        <button @click=${() => this.handleFilter('unread')}>Unread</button>
+        <button @click=${() => this.handleFilter('all')}>All</button>
+        <ul>
+          ${articlesToShow.map(a => html `<my-article 
+            .title=${a.title} 
+            .description=${a.description}
+            .read=${a.read}
+            .id=${a.id} 
+            @toggleRead=${this.readToggleCallback}></my-article`)}
+        </ul>
+        `;
+      }
     }
-
-    customElements.define('my-element', MyElement);
-  </script>
-</head>
-
-<body>
-</body>
-</html>
+      
+      class MyArticle extends LitElement {
+        static get properties(){
+          return {
+            title: {type: String},
+            description: {type: String},
+            read: {type: Boolean},
+            id: {type: Number}
+          }
+        }
+        
+        readClick(){
+          this.dispatchEvent(new CustomEvent('toggleRead', { detail: this.id }));
+        }
+        
+        render(){
+          return html `<li>
+            <h2>${this.title}</h2>
+            <p>${this.description}</p>
+            <button @click=${this.readClick}>${this.read ? 'read' : 'unread'}</button>
+          </li>`;
+        }
+      }
+      
+      customElements.define('my-element', MyElement);
+      customElements.define('my-article', MyArticle);
+    </script>
+  </head>
+  
+  <body>
+    <my-element></my-element>
+  </body>
+  </html>
+  
