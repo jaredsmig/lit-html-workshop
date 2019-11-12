@@ -39,12 +39,77 @@
        *
        *
        */
-    }
+      static get properties(){
+        return {
+          articles: {type: Array}
+        }
+      }
+      
+      constructor(){
+        super();
+        this.articles = [];
+      }
+      
+      connectedCallback(){
+        super.connectedCallback();
+        
+        fetch('https://newsapi.org/v2/everything?q=yankees&apiKey=4400ff3e644b4664888a569d8ae7f1e2')
+        .then(response => response.json())
+        .then(response => {
+          this.articles = response.articles.map((article, i) => ({...article, id: i, read: false}));
+        });
+      }
 
-    customElements.define('my-element', MyElement);
-  </script>
-</head>
-
-<body>
-</body>
-</html>
+      readToggleCallback(event){
+        this.articles[event.detail].read = !this.articles[event.detail].read;
+        this.requestUpdate();
+      }
+      
+      render(){
+        return html `
+        <h1>Articles</h1>
+        <ul>
+          ${this.articles.map(a => html `<my-article 
+            .title=${a.title} 
+            .description=${a.description}
+            .read=${a.read}
+            .id=${a.id} 
+            @toggleRead=${this.readToggleCallback}></my-article`)}
+          </ul>
+          `;
+        }
+      }
+      
+      class MyArticle extends LitElement {
+        static get properties(){
+          return {
+            title: {type: String},
+            description: {type: String},
+            read: {type: Boolean},
+            id: {type: Number}
+          }
+        }
+        
+        readClick(){
+          this.dispatchEvent(new CustomEvent('toggleRead', { detail: this.id }));
+        }
+        
+        render(){
+          return html `<li>
+            <h2>${this.title}</h2>
+            <p>${this.description}</p>
+            <button @click=${this.readClick}>${this.read ? 'read' : 'unread'}</button>
+          </li>`;
+        }
+      }
+      
+      customElements.define('my-element', MyElement);
+      customElements.define('my-article', MyArticle);
+    </script>
+  </head>
+  
+  <body>
+    <my-element></my-element>
+  </body>
+  </html>
+  
