@@ -20,7 +20,33 @@
     import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.0.1?module';
 
     class MyElement extends LitElement {
+      static get properties(){
+        return {
+          articles: {type: Array}
+        };
+      }
 
+      constructor(){
+        super();
+        this.articles = [];
+      }
+
+      connectedCallback(){
+        super.connectedCallback();
+
+        fetch('https://newsapi.org/v2/everything?q=baseball&apiKey=4400ff3e644b4664888a569d8ae7f1e2')
+                .then(response => response.json())
+                .then(response => {
+                  this.articles = response.articles;
+                });
+      }
+
+      render() {
+        return html `<h1>Baseball articles</h1>
+        <ul>
+          ${this.articles.map((a) => html  `<li>${a.title}</li>`)}
+        </ul>`;
+      }
     }
 
     customElements.define('my-element', MyElement);
@@ -28,5 +54,6 @@
 </head>
 
 <body>
+  <my-element></my-element>
 </body>
 </html>

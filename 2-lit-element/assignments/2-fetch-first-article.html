@@ -3,50 +3,72 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-
+  
   <script type="module">
     /**
-     * Assignment 2
-     * Fetch and display the title of the first article from the google news API.
-     *
-     * - Set up your API key at google news
-     *   - Click the link: https://newsapi.org/ and click 'GET API KEY'
-     *   - Then add the &apiKey=<your-api-key> query param to you request,
-     *   - e.g.: https://newsapi.org/v2/everything?q=<some-topic>&apiKey=<your-api-key-goes-here>
-     * - In the connectedCallback, make an API call to the news API.
-     *   - See below for fetch example
-     *   - For more info: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-     * - Take the title of the first article, and assign it to a property
-     * - Add the property to the static properties getter so that LitElement will trigger a render on change
-     * - Display the first article's title in your template
-     *
-     * Check out the README.md for reference documentation
-     *
-     * Copy paste into plnkr: http://plnkr.co/edit/DI9312Rn54NuIH7FRzzD?p=preview
-     */
+    * Assignment 2
+    * Fetch and display the title of the first article from the google news API.
+    *
+    * - Set up your API key at google news
+    *   - Click the link: https://newsapi.org/ and click 'GET API KEY'
+    *   - Then add the &apiKey=<your-api-key> query param to you request,
+      *   - e.g.: https://newsapi.org/v2/everything?q=<some-topic>&apiKey=<your-api-key-goes-here>
+        * - In the connectedCallback, make an API call to the news API.
+        *   - See below for fetch example
+        *   - For more info: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+        * - Take the title of the first article, and assign it to a property
+        * - Add the property to the static properties getter so that LitElement will trigger a render on change
+        * - Display the first article's title in your template
+        *
+        * Check out the README.md for reference documentation
+        *
+        * Copy paste into plnkr: http://plnkr.co/edit/DI9312Rn54NuIH7FRzzD?p=preview
+        */
+        
+        import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.0.1?module';
+        
+        /**
+        * fetch example:
+        *
+        * fetch('https://newsapi.org/v2/everything?q=<some-topic>&apiKey=<your-api-key-goes-here>')
+          *   // the response is a stream, we need to parse it as json first
+          *   .then(response => response.json())
+          *   .then(response => {
+            *     // we now have the API response available as an object
+            *     console.log(response.articles[0].title);
+            *   });
+            */
+            
+            
+            
+            class MyElement extends LitElement {
+              static get properties() {
+                return {
+                  firstArticleTitle: { type: String },
+                };
+              }
+              
+              connectedCallback(){
+                super.connectedCallback();
+                
+                fetch('https://newsapi.org/v2/everything?q=baseball&apiKey=4400ff3e644b4664888a569d8ae7f1e2')
+                .then(response => response.json())
+                .then(response => {
+                  this.firstArticleTitle = response.articles[0].title;
+                });
+              }
 
-    import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.0.1?module';
-
-    /**
-     * fetch example:
-     *
-     * fetch('https://newsapi.org/v2/everything?q=<some-topic>&apiKey=<your-api-key-goes-here>')
-     *   // the response is a stream, we need to parse it as json first
-     *   .then(response => response.json())
-     *   .then(response => {
-     *     // we now have the API response available as an object
-     *     console.log(response.articles[0].title);
-     *   });
-     */
-
-    class MyElement extends LitElement {
-
-    }
-
-    customElements.define('my-element', MyElement);
-  </script>
-</head>
-
-<body>
-</body>
-</html>
+              render(){
+                return html `Here's the news: ${this.firstArticleTitle}`
+              }
+            }
+            
+            customElements.define('my-element', MyElement);
+          </script>
+        </head>
+        
+        <body>
+          <my-element></my-element>
+        </body>
+        </html>
+        
