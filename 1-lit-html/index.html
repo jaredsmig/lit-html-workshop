@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    
+    <script type="module">
+        import { html, render } from 'https://unpkg.com/lit-html?module';
+        
+        // create a function which returns your template
+        function buttonTemplate(){
+            const listener = {
+                handleEvent(e) {
+                    console.log('clicked');
+                },
+                capture: true,
+            };
+            
+            return html`<button @click=${listener}>Click Me</button>`
+        }
+        
+        // create an instance of the template for the given variables
+        const template = buttonTemplate()
+        
+        // render the template
+        render(template, document.body);
+    </script>
+</head>
+<body>
+</body>
+</html>
