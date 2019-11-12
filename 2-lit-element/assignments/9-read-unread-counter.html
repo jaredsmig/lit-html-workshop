@@ -3,28 +3,145 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
 
   <script type="module">
     /**
-     * Assignment 9:
-     * Add a counter next to the read/unread filter buttons.
+     * Assignment 8:
+     * Replace your toggle buttons with <paper-button> from Polymer 3.
      *
-     * - The counter should print the total amount of read and unread messages
+     * - Both Polymer and LitElement are web components, so you can use them side by side
+     * - Polymer is built with modules, so they are easy to import
      *
      * Check out the README.md for reference documentation
      *
      * Copy paste into plnkr: http://plnkr.co/edit/DI9312Rn54NuIH7FRzzD?p=preview
      */
     import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.0.1?module';
+    // import '@polymer/paper-button/paper-button.js';
+
+    // example import through the unpkg CDN:
+    import 'https://unpkg.com/@polymer/paper-button/paper-button.js?module';
 
     class MyElement extends LitElement {
+      static get styles() {
+        return css`
+          :host {
+            display: block;
+            font-family: 'Roboto';
+          }
+        `;
+      }
+      static get properties(){
+        return {
+          articles: {type: Array},
+          filter: {type: String}
+        }
+      }
+      
+      constructor(){
+        super();
+        this.articles = [];
+      }
+      
+      connectedCallback(){
+        super.connectedCallback();
+        
+        fetch('https://newsapi.org/v2/everything?q=yankees&apiKey=4400ff3e644b4664888a569d8ae7f1e2')
+        .then(response => response.json())
+        .then(response => {
+          this.articles = response.articles.map((article, i) => ({...article, id: i, read: false}));
+        });
+      }
+      
+      readToggleCallback(event){
+        this.articles[event.detail].read = !this.articles[event.detail].read;
+        this.requestUpdate();
+      }
 
+      handleFilter(filterChoice){
+        this.filter = filterChoice;
+        this.requestUpdate();
+      }
+      
+      render(){
+        var allArticles = this.articles;
+        var readArticles = this.articles.filter(a => a.read);
+        var unreadArticles = this.articles.filter(a => !a.read);
+        
+        var articlesToShow = this.articles;
+
+        if(this.filter == "read"){
+          articlesToShow = readArticles
+        } else if (this.filter == "unread"){
+          articlesToShow = unreadArticles;
+        }
+
+
+        return html `
+        <h1>Articles</h1>
+        <paper-button raised @click=${() => this.handleFilter('read')}>Read ${readArticles.length}</paper-button>
+        <paper-button raised @click=${() => this.handleFilter('unread')}>Unread ${unreadArticles.length}</paper-button>
+        <paper-button raised @click=${() => this.handleFilter('all')}>All</paper-button>
+        <ul>
+          ${articlesToShow.map(a => html `<my-article 
+            .title=${a.title} 
+            .description=${a.description}
+            .read=${a.read}
+            .id=${a.id} 
+            @toggleRead=${this.readToggleCallback}></my-article`)}
+        </ul>
+        `;
+      }
     }
+      
+      class MyArticle extends LitElement {
+        static get styles(){
+          return css`
+          li {
+            list-style-type: none
+          }
 
-    customElements.define('my-element', MyElement);
-  </script>
-</head>
+          h2 {
+            color: navy;
+          }
 
-<body>
-</body>
-</html>
+          .description {
+            color: #555;
+          }
+          `;
+        }
+
+
+        static get properties(){
+          return {
+            title: {type: String},
+            description: {type: String},
+            read: {type: Boolean},
+            id: {type: Number}
+          }
+        }
+        
+        readClick(){
+          this.dispatchEvent(new CustomEvent('toggleRead', { detail: this.id }));
+        }
+        
+        render(){
+          return html `<li>
+            <h2>${this.title}</h2>
+            <p class="description">${this.description}</p>
+            <paper-button raised @click=${this.readClick}>${this.read ? 'read' : 'unread'}</paper- button>
+          </li>`;
+        }
+      }
+      
+      customElements.define('my-element', MyElement);
+      customElements.define('my-article', MyArticle);
+    </script>
+  </head>
+  
+  <body>
+    <my-element></my-element>
+  </body>
+  </html>
+  
